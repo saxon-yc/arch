@@ -1,0 +1,7 @@
+node_modules/
+dist/
+src/generated/
+.vercel/
+.vercel-global/
+.DS_Store
+*.log

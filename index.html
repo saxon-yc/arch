@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#f6f3ec" />
+    <meta
+      name="description"
+      content="架构图谱 · 在线阅读版：把 Awesome Architecture 的 40 讲架构课程、31 张架构地图与 6 个实战案例，做成一条可以读完、可以追踪的学习路径。"
+    />
+    <script>
+      try {
+        const saved = localStorage.getItem('atlas-theme')
+        const dark = saved ? saved === 'dark' : window.matchMedia('(prefers-color-scheme: dark)').matches
+        if (dark) document.documentElement.dataset.theme = 'dark'
+      } catch {}
+    </script>
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <title>架构图谱 · 在线阅读版</title>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.jsx"></script>
+  </body>
+</html>
