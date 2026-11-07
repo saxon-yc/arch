@@ -42,7 +42,7 @@ npm run preview
 # 默认 http://127.0.0.1:4173
 ```
 
-构建产物在 `dist/`。
+构建产物在 `dist/`，同时生成 `sitemap.xml` 与 `robots.txt`。
 
 ## 目录结构
 
@@ -78,7 +78,7 @@ npm run preview
 
 站点是 **SPA + 静态资源**，任意静态托管都可以：
 
-- **Vercel**：导入项目，构建命令 `npm run build`，输出目录 `dist`；`vercel.json` 已包含 SPA rewrite。
+- **Vercel**：已连接 GitHub `saxon-yc/arch` 的 `main` 分支，push 后自动生产部署；构建命令 `npm run build`，`vercel.json` 已包含 SPA rewrite。`SITE_URL` 环境变量可覆盖 sitemap 中的域名。
 - **Netlify**：构建命令 `npm run build`，发布目录 `dist`；`public/_redirects` 已包含 fallback。
 - **GitHub Pages**：发布 `dist/`。`npm run build` 会生成 `dist/404.html`；若部署在子路径，需要在 `vite.config.js` 里设置 `base`。
 - **Nginx**：`try_files $uri $uri/ /index.html;`
