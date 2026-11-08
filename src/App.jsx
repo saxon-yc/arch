@@ -1,4 +1,4 @@
-import { BrowserRouter, Route, Routes } from 'react-router-dom'
+import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
 import { AppProvider } from './lib/progress'
 import Layout from './components/Layout'
 import Home from './pages/Home'
@@ -22,8 +22,12 @@ export default function App() {
             <Route path="courses/:slug" element={<Reader type="course" />} />
             <Route path="paths" element={<Paths />} />
             <Route path="templates" element={<Templates />} />
+            <Route path="templates/README" element={<Navigate to="/templates" replace />} />
+            <Route path="tutorial" element={<Navigate to="/courses" replace />} />
+            <Route path="tutorial/README" element={<Navigate to="/courses" replace />} />
             <Route path="templates/:slug" element={<Reader type="template" />} />
             <Route path="cases" element={<Cases />} />
+            <Route path="cases/README" element={<Navigate to="/cases" replace />} />
             <Route path="cases/:slug" element={<Reader type="case" />} />
             <Route path="me" element={<Me />} />
             <Route path="about" element={<About />} />

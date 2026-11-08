@@ -103,27 +103,96 @@ export default function Templates() {
       )}
 
       <section className="template-method">
-        <div className="template-method-copy">
-          <span className="kicker">THE 14 SECTIONS</span>
-          <h2>结构本身就是教学</h2>
-          <p>
-            每张地图都回答同样的 14 类问题。第一次读要从头看；第十次读，就能直接跳到「关键决策」。
-            这不是为了整齐，而是因为真实设计也必须依次回答这些问题。
-          </p>
-          <Link className="text-link" to="/courses/18">先学怎么读地图 <ArrowUpRight size={15} /></Link>
+        <div className="template-method-head">
+          <div className="template-method-copy">
+            <span className="kicker">THE 14 SECTIONS</span>
+            <h2>结构本身就是教学</h2>
+            <p>每张地图都按同一套结构展开。下面是这 14 段分别在回答什么问题。</p>
+            <Link className="text-link" to="/courses/18">先学怎么读地图 <ArrowUpRight size={15} /></Link>
+          </div>
+          <div className="template-method-points">
+            <p><strong>越读越快。</strong>你第一次读要从头看，第十次读，就能直接跳到「关键决策」那一节。</p>
+            <p><strong>结构本身就是教学。</strong>这 14 段，正好就是你设计任何系统时该依次问自己的 14 类问题。</p>
+          </div>
         </div>
         <div className="template-sections">
           {[
-            ['01', '核心需求与约束'], ['02', '规模与质量目标'], ['03', '总体架构'], ['04', '关键数据流'],
-            ['05', '关键决策'], ['06', '失败模式'], ['07', '演进路径'], ['08', '常见误区'],
-          ].map(([num, name]) => (
+            ['01', '一句话定位', '这东西到底是什么？'],
+            ['02', '业务本质', '它在解决什么真实问题？谁付钱？'],
+            ['03', '核心需求与约束', '功能要做什么？非功能（质量）要满足什么？'],
+            ['04', '架构全景图', '整体长什么样？（一张 ASCII 图）'],
+            ['05', '组件职责', '每个部件干什么？为什么需要它？'],
+            ['06', '关键数据流', '核心场景下，请求 / 数据怎么流动？'],
+            ['07', '数据模型与存储', '存什么？为什么用这种存储？'],
+            ['08', '关键决策与权衡', '在哪些岔路口做了选择？放弃了什么？'],
+            ['09', '规模化与瓶颈', '用户涨 100 倍，第一个会死的是哪？'],
+            ['10', '安全与合规', '哪里是攻击面？哪些数据碰不得？'],
+            ['11', '常见误区 / 反模式', '新手最容易在哪里把它做错？'],
+            ['12', '演进路线', 'MVP → 成长期 → 成熟期，每阶段架构长什么样？'],
+            ['13', '可复用要点', '哪些思想能搬到别的系统上？'],
+            ['14', '参考原型与延伸阅读', '它的真实原型是哪些开源项目 / 公开文档？'],
+          ].map(([num, name, question]) => (
             <div className="template-section-item" key={num}>
               <span>{num}</span>
-              <strong>{name}</strong>
+              <div>
+                <strong>{name}</strong>
+                <em>{question}</em>
+              </div>
             </div>
           ))}
-          <div className="template-sections-more">+ 另外 6 段：安全、成本、观测、部署、取舍、延伸阅读</div>
         </div>
+      </section>
+
+      <section className="template-guide" id="template-guide">
+        <div className="template-guide-head">
+          <div>
+            <span className="kicker">READING NOTES</span>
+            <h2>怎么用这些地图</h2>
+            <p>别把模板当成要背下来的标准答案。它们更像一份设计对话的开场白：先看约束，再看选择，最后问自己「如果是我，会放弃什么」。</p>
+          </div>
+          <a className="text-link" href={`${catalog.upstream}/blob/main/templates/README.md`} target="_blank" rel="noreferrer">
+            查看源站原文 <ArrowUpRight size={15} />
+          </a>
+        </div>
+
+        <div className="template-guide-grid">
+          <article className="guide-card guide-reading">
+            <span className="guide-num">01 / 阅读建议</span>
+            <h3>别死记图</h3>
+            <p>记住的应该是「<strong>为什么</strong>这么连」，而不是「这里有几个框」。同一个系统，换个规模或换个约束，图就完全不同。</p>
+            <h3>重点看第 8、9、11 段</h3>
+            <p>这三段（决策权衡、瓶颈、误区）是浓缩了真实经验的部分，也是面试和实战最值钱的部分。</p>
+            <h3>对照第 12 段（演进）看自己</h3>
+            <p>你现在做的东西，大概率不需要成熟期那套重型架构。看清楚自己在哪个阶段，避免过度设计。</p>
+          </article>
+
+          <article className="guide-card guide-truth">
+            <span className="guide-num">02 / 真实性说明</span>
+            <h3>这些不是公司内部图纸</h3>
+            <p>这些模板基于产品<strong>公开披露的架构理念、工程博客、技术演讲和业界通行实践</strong>整理而成，目的是教学：抓住这类系统架构上的共性与关键取舍。</p>
+            <p>它们不是任何公司的内部真实图纸，具体数字、组件命名做了通用化处理。把它们当作「这一类系统的典型架构长这样」来理解，而不是「某公司就是这么实现的」。</p>
+            <div className="guide-note">读的是推理过程，不是某张「标准答案图」。</div>
+          </article>
+
+          <article className="guide-card guide-contribute">
+            <span className="guide-num">03 / 贡献模板</span>
+            <h3>想贡献一个新模板？</h3>
+            <ol>
+              <li>复制 <code>_TEMPLATE.md</code> 到一个新目录，比如 <code>templates/your-system/README.md</code>。</li>
+              <li>把 14 段逐一填满，并给出真实的参考原型链接；坚持只讲架构，不写语言 / 框架实现细节。</li>
+              <li>图用 ASCII 画：纯文本、到处都能看、永不失效。</li>
+              <li>在模板清单表格里加一行。</li>
+            </ol>
+            <a className="guide-link" href={`${catalog.upstream}/blob/main/templates/_TEMPLATE.md`} target="_blank" rel="noreferrer">
+              打开模板规范 <ArrowUpRight size={14} />
+            </a>
+          </article>
+        </div>
+
+        <blockquote className="template-standard">
+          <span>STANDARD</span>
+          一个没接触过这个领域的工程师，读完你的模板，能讲清楚「这类系统为什么这么设计、会死在哪」。
+        </blockquote>
       </section>
 
       <section className="maps-footer-note">
