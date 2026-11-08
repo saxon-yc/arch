@@ -36,6 +36,7 @@ export default function Templates() {
             只讲架构，不讲语法。每张地图都按同一套 14 段结构展开：核心需求与约束、关键决策、
             数据流、失败模式、演进路径与常见误区。
           </p>
+          <p className="maps-breakdown">16 个经典 / 通用系统 · 5 个 AI 原生系统 · 4 个 AI 编码 / 自治 Agent · 1 个系统提示词架构 · 5 个工业 / 嵌入式系统</p>
         </div>
         <div className="maps-legend">
           <div className="maps-legend-icon"><Map size={30} /></div>
@@ -179,7 +180,7 @@ export default function Templates() {
             <h3>想贡献一个新模板？</h3>
             <ol>
               <li>复制 <code>_TEMPLATE.md</code> 到一个新目录，比如 <code>templates/your-system/README.md</code>。</li>
-              <li>把 14 段逐一填满，并给出真实的参考原型链接；坚持只讲架构，不写语言 / 框架实现细节。</li>
+              <li>把 14 段逐一填满（含给出真实的参考原型链接），坚持只讲架构——一旦你开始写「用 XX 语言的 YY 库」，就停下来问自己：这是架构决策，还是实现细节？</li>
               <li>图用 ASCII 画：纯文本、到处都能看、永不失效。</li>
               <li>在模板清单表格里加一行。</li>
             </ol>
