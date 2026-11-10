@@ -109,6 +109,21 @@ const CASE_CATEGORIES = [
   { id: 'platform', name: '平台与 SaaS' },
 ]
 
+const ARTICLE_CATEGORIES = [
+  { id: 'all', name: '全部' },
+  { id: 'agent', name: 'Agent 架构' },
+  { id: 'ai-native', name: 'AI 原生' },
+  { id: 'organization', name: '组织与协作' },
+  { id: 'engineering', name: '工程与系统' },
+]
+
+const ARTICLE_TOPIC_CATEGORY = {
+  'Agent 架构': 'agent',
+  'AI 原生': 'ai-native',
+  '组织与协作': 'organization',
+  '工程与系统': 'engineering',
+}
+
 const CASE_META = {
   'stararena-ticketing': { category: 'commerce' },
   'patchdesk-saas': { category: 'platform' },
@@ -300,6 +315,45 @@ function parseCaseMeta(raw) {
   return meta
 }
 
+function parseArticleMeta(raw) {
+  const meta = new Map()
+  for (const line of raw.split('\n')) {
+    if (!line.trim().startsWith('|')) continue
+    const cells = line.split('|').slice(1, -1).map((cell) => cell.trim())
+    if (cells.length < 5) continue
+    const link = cells[0].match(/\[([^\]]+)\]\(([^)]+\.md)(?:#[^)]*)?\)/)
+    if (!link) continue
+    const id = path.posix.basename(link[2].replace(/^\.\//, ''))
+    meta.set(nfc(id), {
+      indexTitle: stripInline(link[1]),
+      topic: stripInline(cells[1]),
+      source: stripInline(cells[2]),
+      tags: cells[3]
+        .split(/[·、,，/]/)
+        .map((item) => stripInline(item))
+        .filter(Boolean)
+        .slice(0, 6),
+      summary: stripInline(cells[4]),
+      order: meta.size,
+    })
+  }
+  return meta
+}
+
+function extractArticleSources(raw) {
+  const sources = []
+  for (const line of raw.split('\n')) {
+    if (!/^\|\s*\[[^\]]+\]\(https?:/.test(line.trim())) continue
+    const cells = line.split('|').slice(1, -1).map((cell) => cell.trim())
+    const link = cells[0].match(/\[([^\]]+)\]\((https?:[^)]+)\)/)
+    if (!link) continue
+    const name = stripInline(cells[1] || '').split('·').pop().trim() || '原文'
+    if (sources.some((source) => source.url === link[2])) continue
+    sources.push({ name, title: stripInline(link[1]), url: link[2] })
+  }
+  return sources.slice(0, 4)
+}
+
 function relativeLink(currentRel, href) {
   if (!href || /^(https?:|mailto:|tel:|#)/.test(href)) return null
   const [rawPath, rawAnchor] = href.split('#')
@@ -408,17 +462,20 @@ function main() {
   const tutorialIndex = parseIndexSummaries(read('tutorial/README.md'))
   const templateMeta = parseTemplateMeta(read('templates/README.md'))
   const caseMeta = parseCaseMeta(read('cases/README.md'))
+  const articleMeta = parseArticleMeta(read('articles/README.md'))
 
   const allFiles = walk(CONTENT)
   const tutorialFiles = allFiles.filter((file) => /^tutorial\/[^/]+\.md$/.test(file)).sort()
   const templateFiles = allFiles.filter((file) => /^templates\/[^/]+\/README\.md$/.test(file)).sort()
   const caseFiles = allFiles.filter((file) => /^cases\/[^/]+\/README\.md$/.test(file)).sort()
+  const articleFiles = allFiles.filter((file) => /^articles\/[^/]+\.md$/.test(file) && file !== 'articles/README.md').sort()
 
   const fileRoutes = new Map()
   const courseEntries = []
   const appendixEntries = []
   const templateEntries = []
   const caseEntries = []
+  const articleEntries = []
 
   for (const rel of tutorialFiles) {
     const file = path.basename(rel)
@@ -500,7 +557,31 @@ function main() {
     })
   }
 
+  for (const rel of articleFiles) {
+    const id = nfc(rel.match(/^articles\/([^/]+)\.md$/)[1])
+    const raw = read(rel)
+    const title = parseTitle(raw)
+    const meta = articleMeta.get(nfc(path.basename(rel)))
+    fileRoutes.set(nfc(rel), `/articles/${id}`)
+    articleEntries.push({
+      id,
+      title,
+      summary: trimText(meta?.summary || firstQuote(raw) || firstParagraph(raw), 96),
+      category: ARTICLE_TOPIC_CATEGORY[meta?.topic] || 'agent',
+      topic: meta?.topic || 'Agent 架构',
+      sourceLabel: meta?.source || '',
+      tags: meta?.tags || [],
+      sources: extractArticleSources(raw),
+      raw,
+      rel,
+      minutes: readingMinutes(raw),
+      chars: raw.length,
+      order: meta?.order ?? 999,
+    })
+  }
+
   fileRoutes.set(nfc('README.md'), '/')
+  fileRoutes.set(nfc('articles/README.md'), '/articles')
   fileRoutes.set(nfc('templates/README.md'), '/templates')
   fileRoutes.set(nfc('templates/_TEMPLATE.md'), '/templates')
   fileRoutes.set(nfc('cases/README.md'), '/cases')
@@ -524,6 +605,7 @@ function main() {
   })
 
   caseEntries.sort((a, b) => Number(a.num) - Number(b.num))
+  articleEntries.sort((a, b) => a.order - b.order || a.id.localeCompare(b.id))
 
   for (const track of TRACKS) {
     if (track.id === 'special') track.chapterIds = courseEntries.filter((course) => course.trackId === 'special').map((course) => course.id)
@@ -559,7 +641,7 @@ function main() {
       track: extra.trackName || extra.categoryName || '',
       headings: headings.map((heading) => heading.text).slice(0, 30),
       body: extractPlain(raw).slice(0, 3200),
-      path: type === 'course' ? `/courses/${id}` : type === 'appendix' ? `/courses/${id}` : type === 'template' ? `/templates/${id}` : `/cases/${id}`,
+      path: type === 'course' ? `/courses/${id}` : type === 'appendix' ? `/courses/${id}` : type === 'template' ? `/templates/${id}` : type === 'case' ? `/cases/${id}` : `/articles/${id}`,
     })
     return key
   }
@@ -676,6 +758,46 @@ function main() {
     })
   }
 
+  const articleDocs = []
+  articleEntries.forEach((entry, index) => {
+    const category = ARTICLE_CATEGORIES.find((item) => item.id === entry.category)
+    const key = renderDoc({
+      id: entry.id,
+      type: 'article',
+      title: entry.title,
+      summary: entry.summary,
+      raw: entry.raw,
+      rel: entry.rel,
+      minutes: entry.minutes,
+      extra: {
+        num: String(index + 1).padStart(2, '0'),
+        category: entry.category,
+        categoryName: category?.name || '优秀文章',
+        topic: entry.topic,
+        sourceLabel: entry.sourceLabel,
+        sources: entry.sources,
+        tags: entry.tags,
+        trackName: '优秀文章',
+      },
+    })
+    articleDocs.push({
+      id: entry.id,
+      key,
+      num: String(index + 1).padStart(2, '0'),
+      title: entry.title,
+      summary: entry.summary,
+      category: entry.category,
+      categoryName: category?.name || '优秀文章',
+      topic: entry.topic,
+      sourceLabel: entry.sourceLabel,
+      sources: entry.sources,
+      tags: entry.tags,
+      minutes: entry.minutes,
+      chars: entry.chars,
+      rel: entry.rel,
+    })
+  })
+
   for (const [key, doc] of docs) {
     fs.writeFileSync(path.join(DOCS_OUT, `${key}.json`), JSON.stringify(doc))
   }
@@ -689,6 +811,7 @@ function main() {
       allCourses: courseDocs.length,
       templates: templateDocs.length,
       cases: caseDocs.length,
+      articles: articleDocs.length,
       minutes: courseDocs.reduce((sum, course) => sum + course.minutes, 0),
     },
     tracks: TRACKS.map(({ raw, ...track }) => track),
@@ -696,14 +819,16 @@ function main() {
     appendices: appendixDocs,
     templates: templateDocs,
     cases: caseDocs,
+    articles: articleDocs,
     templateCategories: TEMPLATE_CATEGORIES,
     caseCategories: CASE_CATEGORIES,
+    articleCategories: ARTICLE_CATEGORIES,
   }
 
   fs.writeFileSync(path.join(OUT, 'catalog.json'), JSON.stringify(catalog, null, 2))
   fs.writeFileSync(path.join(OUT, 'search.json'), JSON.stringify(search))
 
-  console.log(`✓ ${courseDocs.length} courses, ${templateDocs.length} templates, ${caseDocs.length} cases, ${appendixDocs.length} appendices`)
+  console.log(`✓ ${courseDocs.length} courses, ${templateDocs.length} templates, ${caseDocs.length} cases, ${articleDocs.length} articles, ${appendixDocs.length} appendices`)
   console.log(`✓ ${(fs.statSync(path.join(OUT, 'search.json')).size / 1024).toFixed(0)} KB search index`)
 }
 

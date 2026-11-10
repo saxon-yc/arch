@@ -16,11 +16,13 @@ const routes = [
   { path: '/paths', priority: '0.8' },
   { path: '/templates', priority: '0.8' },
   { path: '/cases', priority: '0.8' },
+  { path: '/articles', priority: '0.8' },
   { path: '/about', priority: '0.5' },
   ...catalog.courses.map((item) => ({ path: `/courses/${item.id}`, priority: item.num.startsWith('T') ? '0.7' : '0.8' })),
   ...catalog.appendices.map((item) => ({ path: `/courses/${item.id}`, priority: '0.5' })),
   ...catalog.templates.map((item) => ({ path: `/templates/${item.id}`, priority: '0.7' })),
   ...catalog.cases.map((item) => ({ path: `/cases/${item.id}`, priority: '0.7' })),
+  ...catalog.articles.map((item) => ({ path: `/articles/${item.id}`, priority: '0.7' })),
 ]
 
 const xml = `<?xml version="1.0" encoding="UTF-8"?>

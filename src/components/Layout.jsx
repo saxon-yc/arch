@@ -14,11 +14,12 @@ const NAV = [
   { to: '/paths', label: '学习路径' },
   { to: '/templates', label: '架构模板' },
   { to: '/cases', label: '实战案例' },
+  { to: '/articles', label: '优秀文章' },
 ]
 
 function ScrollManager() {
   const location = useLocation()
-  const searchableCount = catalog.stats.allCourses + catalog.appendices.length + catalog.stats.templates + catalog.stats.cases
+  const searchableCount = catalog.stats.allCourses + catalog.appendices.length + catalog.stats.templates + catalog.stats.cases + catalog.stats.articles
   useEffect(() => {
     if (location.hash) {
       const element = document.getElementById(decodeURIComponent(location.hash.slice(1)))
@@ -47,7 +48,7 @@ export default function Layout() {
   const { theme, toggleTheme, setSearchOpen, toast } = useApp()
   const [mobileOpen, setMobileOpen] = useState(false)
   const location = useLocation()
-  const searchableCount = catalog.stats.allCourses + catalog.appendices.length + catalog.stats.templates + catalog.stats.cases
+  const searchableCount = catalog.stats.allCourses + catalog.appendices.length + catalog.stats.templates + catalog.stats.cases + catalog.stats.articles
 
   useEffect(() => {
     setMobileOpen(false)
@@ -121,7 +122,7 @@ export default function Layout() {
             <kbd>⌘K</kbd>
           </button>
           <div className="mobile-menu-foot">
-            <span>{catalog.stats.allCourses} 讲课程 · {catalog.stats.templates} 张地图 · {catalog.stats.cases} 个案例</span>
+            <span>{catalog.stats.allCourses} 讲课程 · {catalog.stats.templates} 张地图 · {catalog.stats.cases} 个案例 · {catalog.stats.articles} 篇好文</span>
             <a href={catalog.upstream} target="_blank" rel="noreferrer">查看原仓库 <ArrowUpRight size={13} /></a>
           </div>
         </div>
@@ -162,6 +163,7 @@ function Footer() {
           <h4>知识地图</h4>
           <Link to="/templates">31 张架构地图</Link>
           <Link to="/cases">6 个实战案例</Link>
+          <Link to="/articles">优秀文章 · 归纳结论</Link>
           <Link to="/me">我的学习记录</Link>
           <Link to="/about">关于与致谢</Link>
         </div>

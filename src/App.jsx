@@ -6,6 +6,7 @@ import Courses from './pages/Courses'
 import Paths from './pages/Paths'
 import Templates from './pages/Templates'
 import Cases from './pages/Cases'
+import Articles from './pages/Articles'
 import Reader from './pages/Reader'
 import Me from './pages/Me'
 import About from './pages/About'
@@ -29,6 +30,9 @@ export default function App() {
             <Route path="cases" element={<Cases />} />
             <Route path="cases/README" element={<Navigate to="/cases" replace />} />
             <Route path="cases/:slug" element={<Reader type="case" />} />
+            <Route path="articles" element={<Articles />} />
+            <Route path="articles/README" element={<Navigate to="/articles" replace />} />
+            <Route path="articles/:slug" element={<Reader type="article" />} />
             <Route path="me" element={<Me />} />
             <Route path="about" element={<About />} />
             <Route path="*" element={<NotFound />} />

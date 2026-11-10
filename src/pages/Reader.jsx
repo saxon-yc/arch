@@ -6,7 +6,7 @@ import {
   Settings2, Sun, X,
 } from 'lucide-react'
 import {
-  appendixById, caseById, catalog, courseById, findDoc, formatMinutes, getPrevNext,
+  appendixById, articleById, caseById, catalog, courseById, findDoc, formatMinutes, getPrevNext,
   loadDoc, templateById, trackById, typeLabel,
 } from '../lib/content'
 import { useApp } from '../lib/progress'
@@ -16,12 +16,20 @@ function findMeta(type, id) {
   if (type === 'appendix') return appendixById.get(id)
   if (type === 'template') return templateById.get(id)
   if (type === 'case') return caseById.get(id)
+  if (type === 'article') return articleById.get(id)
   return null
 }
 
 function resolveType(type, id) {
   if (type === 'course' && appendixById.has(id)) return 'appendix'
   return type
+}
+
+function docPath(type, id) {
+  if (type === 'template') return `/templates/${id}`
+  if (type === 'case') return `/cases/${id}`
+  if (type === 'article') return `/articles/${id}`
+  return `/courses/${id}`
 }
 
 function ReaderNav({ type, activeId, progress, completedUids, onNavigate }) {
@@ -76,22 +84,23 @@ function ReaderNav({ type, activeId, progress, completedUids, onNavigate }) {
     )
   }
 
-  const items = type === 'template' ? catalog.templates : catalog.cases
+  const items = type === 'template' ? catalog.templates : type === 'article' ? catalog.articles : catalog.cases
+  const groupName = type === 'template' ? '架构地图' : type === 'article' ? '优秀文章' : '实战案例'
   return (
     <div className="reader-nav-groups">
       <div className="reader-nav-group">
         <div className="reader-nav-group-head">
-          <span>{type === 'template' ? '架构地图' : '实战案例'}</span>
+          <span>{groupName}</span>
           <em>{items.length}</em>
         </div>
         {items.map((item, index) => (
           <Link
             key={item.id}
-            to={type === 'template' ? `/templates/${item.id}` : `/cases/${item.id}`}
+            to={docPath(type, item.id)}
             className={`reader-nav-item ${activeId === item.id ? 'is-active' : ''} ${type === 'template' ? 'reader-nav-compact' : ''}`}
             onClick={onNavigate}
           >
-            <span className="reader-nav-num">{type === 'case' ? item.num : String(index + 1).padStart(2, '0')}</span>
+            <span className="reader-nav-num">{type === 'case' || type === 'article' ? item.num : String(index + 1).padStart(2, '0')}</span>
             <span className="reader-nav-title">{item.title}</span>
           </Link>
         ))}
@@ -100,13 +109,13 @@ function ReaderNav({ type, activeId, progress, completedUids, onNavigate }) {
   )
 }
 
-function ReaderToc({ headings, activeHeading, progress, onJump, fontSize, setFontSize, theme, toggleTheme, wide, setWide }) {
+function ReaderToc({ headings, activeHeading, progress, onJump, fontSize, setFontSize, theme, toggleTheme, wide, setWide, tocTitle }) {
   const [settingsOpen, setSettingsOpen] = useState(false)
   return (
     <aside className="reader-aside">
       <div className="toc-card">
         <div className="toc-head">
-          <span><List size={14} /> 本讲目录</span>
+          <span><List size={14} /> {tocTitle}</span>
           <button className={`icon-button subtle ${settingsOpen ? 'is-active' : ''}`} onClick={() => setSettingsOpen((open) => !open)} aria-label="阅读设置">
             <Settings2 size={16} />
           </button>
@@ -290,8 +299,8 @@ export default function Reader({ type: baseType }) {
       const tag = event.target?.tagName
       if (tag === 'INPUT' || tag === 'TEXTAREA' || event.metaKey || event.ctrlKey || event.altKey) return
       const { prev, next } = getPrevNext(type, slug)
-      if (event.key === '[' && prev) navigate(type === 'course' ? `/courses/${prev.id}` : `/${type}s/${prev.id}`)
-      if (event.key === ']' && next) navigate(type === 'course' ? `/courses/${next.id}` : `/${type}s/${next.id}`)
+      if (event.key === '[' && prev) navigate(docPath(type, prev.id))
+      if (event.key === ']' && next) navigate(docPath(type, next.id))
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
@@ -331,7 +340,9 @@ export default function Reader({ type: baseType }) {
         <span className="kicker">NOT FOUND</span>
         <h1>{error === 'not-found' ? '这一页不在图谱里。' : '内容加载失败。'}</h1>
         <p>可能是链接过期，或者这篇内容还没有被收录。</p>
-        <Link className="button primary" to="/courses"><ArrowLeft size={16} /> 回到课程库</Link>
+        <Link className="button primary" to={baseType === 'article' ? '/articles' : '/courses'}>
+          <ArrowLeft size={16} /> {baseType === 'article' ? '回到优秀文章' : '回到课程库'}
+        </Link>
       </div>
     )
   }
@@ -351,8 +362,10 @@ export default function Reader({ type: baseType }) {
   const { prev, next } = getPrevNext(type, slug)
   const track = type === 'course' ? trackById.get(meta?.trackId) : null
   const sectionLabel = track?.name || doc.categoryName || (type === 'appendix' ? '附录' : typeLabel(type))
-  const backTo = type === 'template' ? '/templates' : type === 'case' ? '/cases' : '/courses'
-  const backLabel = type === 'template' ? '架构地图' : type === 'case' ? '实战案例' : '全部课程'
+  const backTo = type === 'template' ? '/templates' : type === 'case' ? '/cases' : type === 'article' ? '/articles' : '/courses'
+  const backLabel = type === 'template' ? '架构地图' : type === 'case' ? '实战案例' : type === 'article' ? '优秀文章' : '全部课程'
+  const unitLabel = type === 'course' ? '讲' : '篇'
+  const tocTitle = type === 'course' ? '本讲目录' : '本篇目录'
   const docIndex = (type === 'course' || type === 'appendix') ? catalog.courses.findIndex((item) => item.id === slug) : -1
 
   return (
@@ -363,7 +376,7 @@ export default function Reader({ type: baseType }) {
         <aside className="reader-sidebar">
           <div className="reader-sidebar-head">
             <Link to={backTo} className="reader-back"><ChevronLeft size={14} /> {backLabel}</Link>
-            <h2>{type === 'template' ? '地图目录' : type === 'case' ? '案例目录' : '课程目录'}</h2>
+            <h2>{type === 'template' ? '地图目录' : type === 'case' ? '案例目录' : type === 'article' ? '文章目录' : '课程目录'}</h2>
             {(type === 'course' || type === 'appendix') && (
               <span className="reader-sidebar-note">{catalog.stats.allCourses} 讲 · 已读 {completedUids.size} 篇</span>
             )}
@@ -379,7 +392,7 @@ export default function Reader({ type: baseType }) {
               <List size={15} /> 目录
             </button>
             <button className="button small ghost" onClick={() => { setMobilePanel('nav'); setDrawerTab('toc') }}>
-              <List size={15} /> 本讲
+              <List size={15} /> 本篇
             </button>
             <button className={`button small ghost ${bookmarked ? 'is-active' : ''}`} onClick={handleBookmark}>
               {bookmarked ? <BookmarkCheck size={15} /> : <Bookmark size={15} />}
@@ -391,7 +404,7 @@ export default function Reader({ type: baseType }) {
               <Link to={backTo}>{backLabel}</Link>
               <span>/</span>
               <span style={{ color: track?.color }}>{sectionLabel}</span>
-              {(type === 'course' || type === 'case') && <><span>/</span><em>{meta.num}</em></>}
+              {(type === 'course' || type === 'case' || type === 'article') && <><span>/</span><em>{meta.num}</em></>}
             </div>
             <div className="article-head-row">
               <div>
@@ -410,10 +423,19 @@ export default function Reader({ type: baseType }) {
             <div className="article-meta-row">
               <span><Clock3 size={14} /> 约 {doc.minutes} 分钟</span>
               {docIndex >= 0 && <span>第 {docIndex + 1} / {catalog.courses.length} 讲</span>}
+              {type === 'article' && <span>归纳自 {doc.sources?.length || 1} 篇来源</span>}
               <span>{currentProgress.percent || 0}% 已读</span>
               {completed && <span className="meta-complete"><Check size={13} /> 已完成</span>}
               <span className="meta-spacer" />
-              <span className="meta-link"><a href={`${catalog.upstream}/blob/main/${meta?.rel || ''}`} target="_blank" rel="noreferrer">查看原文 <ArrowUpRight size={13} /></a></span>
+              <span className="meta-link">
+                {type === 'article' ? (
+                  (doc.sources || []).map((source) => (
+                    <a key={source.url} href={source.url} target="_blank" rel="noreferrer">{source.name} <ArrowUpRight size={12} /></a>
+                  ))
+                ) : (
+                  <a href={`${catalog.upstream}/blob/main/${meta?.rel || ''}`} target="_blank" rel="noreferrer">查看原文 <ArrowUpRight size={13} /></a>
+                )}
+              </span>
             </div>
           </header>
 
@@ -429,8 +451,8 @@ export default function Reader({ type: baseType }) {
                 {completed ? <CheckCircle2 size={26} /> : <Check size={26} />}
               </div>
               <div>
-                <h3>{completed ? '这一讲已经读完' : '读完了？给这一讲画个句号'}</h3>
-                <p>{completed ? '你的进度已经保存，可以继续下一讲，或回看目录。' : '标记完成会同步到你的学习路径，所有记录只存在本地浏览器。'}</p>
+                <h3>{completed ? `这一${unitLabel}已经读完` : `读完了？给这一${unitLabel}画个句号`}</h3>
+                <p>{completed ? '你的进度已经保存，可以继续下一站，或回看目录。' : '标记完成会同步到你的学习路径，所有记录只存在本地浏览器。'}</p>
               </div>
               <button className={`button ${completed ? 'ghost' : 'primary'}`} onClick={handleComplete}>
                 {completed ? '取消完成' : '标记完成'}
@@ -441,13 +463,13 @@ export default function Reader({ type: baseType }) {
 
           <nav className="article-pagination" aria-label="上一篇下一篇">
             {prev ? (
-              <Link to={type === 'template' ? `/templates/${prev.id}` : type === 'case' ? `/cases/${prev.id}` : `/courses/${prev.id}`} className="pagination-link prev">
+              <Link to={docPath(type, prev.id)} className="pagination-link prev">
                 <span><ChevronLeft size={15} /> 上一篇</span>
                 <strong>{prev.title}</strong>
               </Link>
             ) : <span className="pagination-placeholder" />}
             {next ? (
-              <Link to={type === 'template' ? `/templates/${next.id}` : type === 'case' ? `/cases/${next.id}` : `/courses/${next.id}`} className="pagination-link next">
+              <Link to={docPath(type, next.id)} className="pagination-link next">
                 <span>下一篇 <ChevronRight size={15} /></span>
                 <strong>{next.title}</strong>
               </Link>
@@ -471,6 +493,7 @@ export default function Reader({ type: baseType }) {
           toggleTheme={toggleTheme}
           wide={wide}
           setWide={setWide}
+          tocTitle={tocTitle}
         />
       </div>
 
@@ -480,7 +503,7 @@ export default function Reader({ type: baseType }) {
             <div className="reader-drawer-head">
               <div className="drawer-tabs">
                 <button className={drawerTab === 'nav' ? 'is-active' : ''} onClick={() => setDrawerTab('nav')}>目录</button>
-                <button className={drawerTab === 'toc' ? 'is-active' : ''} onClick={() => setDrawerTab('toc')}>本讲目录</button>
+                <button className={drawerTab === 'toc' ? 'is-active' : ''} onClick={() => setDrawerTab('toc')}>本篇目录</button>
               </div>
               <button className="icon-button" onClick={() => setMobilePanel(null)} aria-label="关闭"><X size={19} /></button>
             </div>

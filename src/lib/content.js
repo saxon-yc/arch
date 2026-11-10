@@ -8,6 +8,7 @@ export const courseById = new Map(catalog.courses.map((course) => [course.id, co
 export const appendixById = new Map(catalog.appendices.map((item) => [item.id, item]))
 export const templateById = new Map(catalog.templates.map((item) => [item.id, item]))
 export const caseById = new Map(catalog.cases.map((item) => [item.id, item]))
+export const articleById = new Map(catalog.articles.map((item) => [item.id, item]))
 export const trackById = new Map(catalog.tracks.map((track) => [track.id, track]))
 
 export const coreCourses = catalog.courses.filter((course) => !course.num.startsWith('T'))
@@ -18,6 +19,7 @@ export function findDoc(type, id) {
   if (type === 'appendix') return appendixById.get(id)
   if (type === 'template') return templateById.get(id)
   if (type === 'case') return caseById.get(id)
+  if (type === 'article') return articleById.get(id)
   return null
 }
 
@@ -35,6 +37,7 @@ export function docHref(type, id) {
   if (type === 'course' || type === 'appendix') return `/courses/${id}`
   if (type === 'template') return `/templates/${id}`
   if (type === 'case') return `/cases/${id}`
+  if (type === 'article') return `/articles/${id}`
   return '/'
 }
 
@@ -60,6 +63,7 @@ export function typeLabel(type) {
     appendix: '附录',
     template: '架构地图',
     case: '实战案例',
+    article: '优秀文章',
   }[type] || '文档'
 }
 
@@ -87,6 +91,7 @@ export function getPrevNext(type, id) {
   else if (type === 'appendix') list = catalog.appendices
   else if (type === 'template') list = catalog.templates
   else if (type === 'case') list = catalog.cases
+  else if (type === 'article') list = catalog.articles
   const index = list.findIndex((item) => item.id === id)
   if (index < 0) return { prev: null, next: null }
   return {

@@ -1,10 +1,10 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { ArrowUpRight, BookOpen, Command, FileText, Map, Search, X } from 'lucide-react'
+import { ArrowUpRight, BookOpen, Command, FileText, Map, Quote, Search, X } from 'lucide-react'
 import { loadSearchIndex, typeLabel } from '../lib/content'
 import { useApp } from '../lib/progress'
 
-const SUGGESTIONS = ['架构图', '一致性', 'RAG', '技术选型', '评测', 'Agent']
+const SUGGESTIONS = ['架构图', '一致性', 'RAG', '技术选型', '评测', 'Agent', '多智能体']
 
 function scoreItem(item, query) {
   const q = query.trim().toLowerCase()
@@ -42,6 +42,7 @@ const TYPE_ICONS = {
   appendix: FileText,
   template: Map,
   case: FileText,
+  article: Quote,
 }
 
 export default function SearchDialog() {
@@ -116,7 +117,7 @@ export default function SearchDialog() {
             ref={inputRef}
             value={query}
             onChange={(event) => setQuery(event.target.value)}
-            placeholder="搜索课程、架构图、案例…"
+            placeholder="搜索课程、架构图、案例与好文…"
             aria-label="搜索"
           />
           <button className="icon-button subtle" onClick={() => setSearchOpen(false)} aria-label="关闭搜索">
